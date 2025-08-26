@@ -1,49 +1,46 @@
-仅在RT-AX86U固件版本Asuswrt-Merlin-3004.388.9_2(rogsoft改版)上测试
+本项目在 [kylehase/asuswrt-snmp](https://github.com/kylehase/asuswrt-snmp) 基础上进行改造
 
-一键安装脚本：cd ~ && curl 
 
 # TODO
-本项目在 [asuswrt-snmp](https://github.com/kylehase/asuswrt-snmp) 基础上，改造为通过rogsoft软件中心-插件离线安装
+通过rogsoft软件中心-插件离线安装
 
-# asuswrt-snmp
+# 背景
+梅林固件内置的SNMP不支持采集温度等数据，开发此脚本扩展SNMP的数据采集
 
-Scripts for extending SNMP on Asuswrt-Merlin routers to include the following values:
-- CPU temp
-- DHCP leases
-- Connected clients
-- 2.4GHz radio temp
-- 5GHz radio temp
-- Memory used
-- Idle CPU
-- Uptime
-- Partition use
-- WAN traffic up
-- WAN traffic down
+# 支持设备
 
-### Supported devices
+[kylehase/asuswrt-snmp](https://github.com/kylehase/asuswrt-snmp) 已在 **RT-AC68U** 和 **RT-AX86U** 测试
 
-This has been tested on ASUS **RT-AC68U** and **RT-AX86U**. Other devices may require tweaks to scripts. Pull requests are welcome.
+一键安装脚本仅在 **RT-AX86U** 固件版本 **Asuswrt-Merlin-3004.388.9_2(rogsoft改版)** 上测试
 
-### Background
-This was created for [Home Assistant](https://www.home-assistant.io/) users wanting more stats than provided by the [ASUSWRT integration](https://www.home-assistant.io/integrations/asuswrt/) or who wish to track multiple ASUSWRT devices, as the integration is limited to one instance. It should of course work with any platform with SNMP support.
+# 要求
+- 已安装梅林固件（默认支持SNMP ）
+- 开启 SSH 
+- 开启 enabled JFFS custom scripts and configs （改版固件默认开启）
 
-## Requirements
-- [Asuswrt-Merlin firmware](https://www.asuswrt-merlin.net) installed
-- SSH enabled (during installation)
-- JFFS scripts enabled
-- SNMP v2 enabled
+# 安装
+一键安装脚本, 确保网络流畅访问github
+```shell
+cd ~ && \
+curl -L https://github.com/XCoder955/asuswrt-snmp-extend/archive/refs/heads/main.zip -o snmp-extend.zip && \
+unzip snmp-extend.zip && \
+cd asuswrt-snmp-extend-main && \
+mkdir -p /jffs/scripts/snmp && \
+cp -r asuswrt-snmp-extend-main/scripts/* /jffs/scripts/snmp && \
+chmod +x /jffs/scripts/snmp/*.sh && \
+cp asuswrt-snmp-extend-main/configs/snmpd.conf.add /jffs/configs/ && \
+rm snmp-extend.zip && rm -r asuswrt-snmp-extend-main
+```
 
-## Installation
-1. SSH to the router
-2. Create an snmp directory in the jffs scripts directory `mkdir /jffs/scripts/snmp/`
-3. Copy all script files into the snmp directory
-4. Copy the file `snmp.conf.add` to `/jffs/configs/` directory
-5. Restart SNMP (disable/enable) or reboot the router
-6. (optional) disable SSH
+卸载脚本, 卸载后重启snmp服务
+```shell
+rm -r /jffs/scripts/snmp && rm /jffs/configs/snmpd.conf.add
+```
 
-## Sensor Details
-Technically everything is returned as a string but the string type is defined below. All results are returned as raw data without units symbols.
-| Sensor            | Baseoid                                                       | Type  | Units |
+
+# 传感器详情
+结果均以原始数据形式返回（不带单位符号），类型均是字符串。oid 对照表如下
+| 传感器            | Baseoid                                                       | 类型  | 单位 |
 |-------------------|---------------------------------------------------------------|-------|-------|
 | CPU temp          | 1.3.6.1.2.1.25.1.8.3.1.1.4.116.101.109.112                    | INT   | °C    |
 | DHCP leases       | 1.3.6.1.2.1.25.1.9.3.1.1.4.100.104.99.112                     | INT   | #     |
@@ -56,3 +53,9 @@ Technically everything is returned as a string but the string type is defined be
 | Partition use (/jffs)    | 1.3.6.1.2.1.25.1.16.3.1.1.4.106.102.102.115                   | INT   | %     |
 | WAN traffic up    | 1.3.6.1.2.1.25.1.18.3.1.1.6.117.112.108.111.97.100            | FLOAT | Mbps  |
 | WAN traffic down  | 1.3.6.1.2.1.25.1.17.3.1.1.8.100.111.119.110.108.111.97.100    | FLOAT | Mbps  |
+
+# 技术参考
+
+https://github.com/RMerl/asuswrt-merlin.ng/wiki/User-scripts
+
+https://github.com/RMerl/asuswrt-merlin.ng/wiki/Custom-config-files
